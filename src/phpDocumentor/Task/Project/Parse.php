@@ -122,54 +122,25 @@ class phpDocumentor_Task_Project_Parse extends phpDocumentor_Task_Abstract
             'Whether to show a progress bar; will automatically quiet logging '
             . 'to stdout'
         );
+        $this->addOption(
+            'exporter', '=s',
+            'Name of the exporter to use.  If not specified, uses "xml"'
+        );
     }
 
     /**
-    * Returns the target location where to store the structure.xml.
-    *
-    * @throws Zend_Console_Getopt_Exception
-    *
-    * @return string
-    */
+     * Returns the target location where to store the structure.xml.
+     *
+     * @throws Zend_Console_Getopt_Exception
+     *
+     * @return mixed
+     */
     public function getTarget()
     {
         $target = parent::getTarget();
         $target = ($target === null)
-          ? trim(phpDocumentor_Core_Abstract::config()->parser->target)
-          : trim($target);
-
-        if (($target == '') || ($target == DIRECTORY_SEPARATOR)) {
-            throw new Zend_Console_Getopt_Exception(
-                'Either an empty path or root was given: ' . $target
-            );
-        }
-
-        // if the target does not end with .xml, assume it is a folder
-        if (substr($target, -4) != '.xml') {
-            // if the folder does not exist at all, create it
-            if (!file_exists($target)) {
-                mkdir($target, 0744, true);
-            }
-
-            if (!is_dir($target)) {
-                throw new Zend_Console_Getopt_Exception(
-                    'The given location "' . $target . '" is not a folder'
-                );
-            }
-
-            $path = realpath($target);
-            $target = $path . DIRECTORY_SEPARATOR . 'structure.xml';
-        } else {
-            $path = realpath(dirname($target));
-            $target = $path . DIRECTORY_SEPARATOR . basename($target);
-        }
-
-        if (!is_writable($path)) {
-            throw new Zend_Console_Getopt_Exception(
-                'The given path "' . $target . '" either does not exist or is '
-                . 'not writable.'
-            );
-        }
+          ? phpDocumentor_Core_Abstract::config()->parser->target
+          : $target;
 
         return $target;
     }
@@ -298,6 +269,20 @@ class phpDocumentor_Task_Project_Parse extends phpDocumentor_Task_Abstract
     }
 
     /**
+     * Returns the name of the exporter to use.
+     *
+     * @return string
+     */
+    public function getExporter()
+    {
+        if (parent::getExporter()) {
+            return parent::getExporter();
+        }
+
+        return phpDocumentor_Core_Abstract::config()->parser->exporter;
+    }
+
+    /**
      * Returns whether to ignore symlinks or not.
      *
      * @return bool
@@ -376,7 +361,6 @@ class phpDocumentor_Task_Project_Parse extends phpDocumentor_Task_Abstract
 
         $parser = new phpDocumentor_Parser();
         $parser->setTitle(htmlentities($this->getTitle()));
-        $parser->setExistingXml($this->getTarget());
         $parser->setForced($this->getForce());
         $parser->setMarkers($this->getMarkers());
         $parser->setIgnoredTags($this->getIgnoreTags());
@@ -384,14 +368,17 @@ class phpDocumentor_Task_Project_Parse extends phpDocumentor_Task_Abstract
         $parser->setVisibility($this->getVisibility());
         $parser->setDefaultPackageName($this->getDefaultpackagename());
 
+        $exporter = phpDocumentor_Parser_Exporter_Abstract::getInstanceOf(
+            $this->getExporter()
+        );
+        $exporter->setTarget($this->getTarget());
+        $exporter->setParser($parser);
+        $parser->setExporter($exporter);
+
         $parser->setPath($files->getProjectRoot());
 
         try {
-            // save the generate file to the path given as the 'target' option
-            file_put_contents(
-                $this->getTarget(),
-                $parser->parseFiles($files, $this->getSourcecode())
-            );
+            $parser->parseFiles($files, $this->getSourcecode());
         } catch (Exception $e) {
             if ($e->getCode() === phpDocumentor_Parser_Exception::NO_FILES_FOUND) {
                 throw new Zend_Console_Getopt_Exception(

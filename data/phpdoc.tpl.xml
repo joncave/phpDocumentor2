@@ -13,6 +13,7 @@
       <extension>phtml</extension>
     </extensions>
     <visibility></visibility>
+    <exporter>xml</exporter>
   </parser>
   <files>
     <ignore-hidden>on</ignore-hidden>

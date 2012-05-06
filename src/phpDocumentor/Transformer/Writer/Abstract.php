@@ -44,7 +44,7 @@ abstract class phpDocumentor_Transformer_Writer_Abstract
      * Returns an instance of a writer and caches it; a single writer
      * instance is capable of transforming multiple times.
      *
-     * @param string $writer Name of thr writer to get.
+     * @param string $writer Name of the writer to get.
      *
      * @return phpDocumentor_Transformer_Writer_Abstract
      */

@@ -438,7 +438,6 @@ class phpDocumentor_Parser extends phpDocumentor_Parser_Abstract
     {
         $timer = microtime(true);
 
-        $this->exporter = new phpDocumentor_Parser_Exporter_Xml($this);
         $this->exporter->initialize();
 
         $paths = $files->getFiles();
@@ -466,6 +465,7 @@ class phpDocumentor_Parser extends phpDocumentor_Parser_Abstract
         }
 
         $this->exporter->finalize();
+        $this->exporter->write();
 
         $this->log('--');
         $this->log(
@@ -482,7 +482,7 @@ class phpDocumentor_Parser extends phpDocumentor_Parser_Abstract
     }
 
     /**
-     * Sets the name of the defautl package.
+     * Sets the name of the default package.
      *
      * @param string $default_package_name Name used to categorize elements
      *  without an @package tag.
@@ -504,4 +504,15 @@ class phpDocumentor_Parser extends phpDocumentor_Parser_Abstract
         return $this->default_package_name;
     }
 
+    /**
+     * Set the exporter the parser should use.
+     *
+     * @param phpDocumentor_Parser_Exporter_Abstract $exporter Exporter to use.
+     *
+     * @return void
+     */
+    public function setExporter($exporter)
+    {
+        $this->exporter = $exporter;
+    }
 }

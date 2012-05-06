@@ -46,8 +46,9 @@ class phpDocumentor_Parser_Exported_XmlTest extends PHPUnit_Framework_TestCase
         $exporter = $this->getMock(
             'phpDocumentor_Parser_Exporter_Xml',
             array('getNodeListForTagBasedQuery', 'buildNamespaceTree', 'buildMarkerList', 'filterVisibility'),
-            array($parser)
+            array()
         );
+        $exporter->setParser($parser);
 
         $nodeList = new stdClass();
         $nodeList->length = $count;
@@ -97,8 +98,9 @@ class phpDocumentor_Parser_Exported_XmlTest extends PHPUnit_Framework_TestCase
         $exporter = $this->getMock(
             'phpDocumentor_Parser_Exporter_Xml',
             array('getNodeListForTagBasedQuery', 'buildNamespaceTree', 'buildDeprecationList', 'filterVisibility'),
-            array($parser)
+            array()
         );
+        $exporter->setParser($parser);
 
         $nodeList = new stdClass();
         $nodeList->length = $count;

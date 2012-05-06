@@ -30,15 +30,7 @@ abstract class phpDocumentor_Parser_Exporter_Abstract extends phpDocumentor_Pars
     /** @var bool Whether to include the file's source in the export */
     protected $include_source = false;
 
-    /**
-     * Construct the object with the location where to write the structure file(s).
-     *
-     * @param phpDocumentor_Parser $parser
-     */
-    public function __construct(phpDocumentor_Parser $parser)
-    {
-        $this->parser = $parser;
-    }
+    abstract public function setTarget($target);
 
     /**
      * Initializes this exporter.
@@ -70,6 +62,16 @@ abstract class phpDocumentor_Parser_Exporter_Abstract extends phpDocumentor_Pars
     }
 
     /**
+     * Save the finalized export if necessary.
+     *
+     * @return void
+     */
+    public function write()
+    {
+
+    }
+
+    /**
      * Returns the contents of this export or null if contents were directly
      * written to disk.
      *
@@ -85,5 +87,49 @@ abstract class phpDocumentor_Parser_Exporter_Abstract extends phpDocumentor_Pars
     public function setIncludeSource($include_source)
     {
         $this->include_source = $include_source;
+    }
+
+    /**
+     * Sets the reference to the parser that's using this exporter.
+     *
+     * @param phpDocumentor_Parser $parser
+     *
+     * @return void
+     */
+    public function setParser(phpDocumentor_Parser $parser)
+    {
+        $this->parser = $parser;
+    }
+
+    /**
+     * Returns an instance of an exporter and caches it.
+     *
+     * @param string $exporter Name of the exporter to get.
+     *
+     * @return phpDocumentor_Parser_Exporter_Abstract
+     */
+    public static function getInstanceOf($exporter)
+    {
+        static $exporters = array();
+
+        if (!class_exists($exporter)) {
+            $exporter_class = 'phpDocumentor_Parser_Exporter_'
+                . ucfirst($exporter);
+        } else {
+            $exporter_class = $exporter;
+        }
+
+        if (!class_exists($exporter_class)) {
+            throw new phpDocumentor_Parser_Exception(
+                'Unknown exporter: ' . $exporter_class
+            );
+        }
+
+        // if there is no exporter in cache; create it
+        if (!isset($exporters[strtolower($exporter_class)])) {
+            $exporters[strtolower($exporter_class)] = new $exporter_class();
+        }
+
+        return $exporters[strtolower($exporter_class)];
     }
 }

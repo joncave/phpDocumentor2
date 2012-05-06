@@ -24,6 +24,9 @@
  */
 class phpDocumentor_Parser_Exporter_Xml extends phpDocumentor_Parser_Exporter_Abstract
 {
+    /** @var string Path to XML file to write to */
+    protected $target;
+
     /** @var DOMDocument $xml Document containing the collected data */
     protected $xml = null;
 
@@ -64,6 +67,63 @@ class phpDocumentor_Parser_Exporter_Xml extends phpDocumentor_Parser_Exporter_Ab
         $this->buildMarkerList($this->xml);
         $this->buildDeprecationList($this->xml);
         $this->filterVisibility($this->xml, $this->parser->getVisibility());
+    }
+
+    /**
+     * Set the path to the XML file to write to.
+     *
+     * @param string $target Path to target XML file.
+     *
+     * @return void
+     */
+    public function setTarget($target)
+    {
+        $target = trim($target);
+
+        if (($target == '') || ($target == DIRECTORY_SEPARATOR)) {
+            throw new phpDocumentor_Parser_Exception(
+                'Either an empty path or root was given: ' . $target
+            );
+        }
+
+        // if the target does not end with .xml, assume it is a folder
+        if (substr($target, -4) != '.xml') {
+            // if the folder does not exist at all, create it
+            if (!file_exists($target)) {
+                mkdir($target, 0744, true);
+            }
+
+            if (!is_dir($target)) {
+                throw new phpDocumentor_Parser_Exception(
+                    'The given location "' . $target . '" is not a folder'
+                );
+            }
+
+            $path = realpath($target);
+            $target = $path . DIRECTORY_SEPARATOR . 'structure.xml';
+        } else {
+            $path = realpath(dirname($target));
+            $target = $path . DIRECTORY_SEPARATOR . basename($target);
+        }
+
+        if (!is_writable($path)) {
+            throw new phpDocumentor_Parser_Exception(
+                'The given path "' . $target . '" either does not exist or is '
+                . 'not writable.'
+            );
+        }
+
+        $this->target = $target;
+    }
+
+    /**
+     * Write the XML to the target structure file.
+     *
+     * @return void
+     */
+    public function write()
+    {
+        file_put_contents($this->target, $this->getContents());
     }
 
     /**
